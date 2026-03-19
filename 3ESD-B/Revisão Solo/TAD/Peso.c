@@ -104,6 +104,14 @@ Peso *pes_copia(Peso *p) {
     return pes_cria(p->kg, p->g);
 }
 
+Peso *pes_soma(Peso *p, int g) {
+    int peso_total = pes_converteParaGrama(p) + g;
+    int novo_kg = peso_total / 1000;
+    int novo_g = peso_total % 1000;
+    
+    return pes_cria(novo_kg, novo_g);
+}
+
 // exibição no formato (Kg: kg, G: g)
 char* pes_getPeso(Peso *p) {
     if (pes_isInvalido(p)) return NULL;

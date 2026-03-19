@@ -20,6 +20,7 @@ void pes_atribuiG(Peso *p, int g);
 // Auxiliares
 int pes_compara(Peso *p1, Peso *p2);
 Peso *pes_copia(Peso *p);
+Peso *pes_soma(Peso *p, int g);
 
 // exibição no formato (Kg: kg, G: g)
 char* pes_getPeso(Peso *p);

@@ -1,52 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "PessoaIMC.h"
-#include "Peso.h"
-#include "Altura.h"
+#include "Produto.h"
 
-int main(void) {
-    // 1. Criação da instância
-    // Nome: Maria Souza, Peso: 65kg 500g, Altura: 1m 60cm
-    printf("--- Teste de Criacao ---\n");
-    PessoaIMC *pessoa = pimc_cria(65, 0, 1, 60, "Maria Souza");
+int main() {
+    int i, j;
+    Produto* estoque[2];
 
-    if (pessoa == NULL) {
-        printf("Erro ao alocar PessoaIMC (Memoria insuficiente).\n");
-        return 1;
+    // Criando Produtos e Unidades
+    estoque[0] = prod_cria("Leite", "789001", 5.00, 2);
+    prod_adicionarUnidade(estoque[0], 0, uni_cria(15, 3, 2026, 501)); // Vence em 1 dia
+    prod_adicionarUnidade(estoque[0], 1, uni_cria(25, 3, 2026, 502)); 
+
+    estoque[1] = prod_cria("Manteiga", "789002", 12.00, 1);
+    prod_adicionarUnidade(estoque[1], 0, uni_cria(17, 3, 2026, 901)); // Vence em 3 dias
+
+    // Entrada da data alvo
+    int d, m, a;
+    printf("Digite a data de hoje para verificacao (dd mm aaaa): ");
+    scanf("%d %d %d", &d, &m, &a);
+    tData* hoje = dta_cria(d, m, a);
+
+    printf("\n--- Analise de Estoque ---\n");
+    for (i = 0; i < 2; i++) {
+        int aplicarDesconto = FALSE;
+        char* descProd = prod_getProduto(estoque[i]);
+        printf("\nProduto: %s\n", descProd);
+        free(descProd);
+
+        for (j = 0; j < prod_get_qtd(estoque[i]); j++) {
+            Unidade* u = prod_get_unidade(estoque[i], j);
+            if (u == NULL) continue;
+
+            int diasRestantes = uni_idade(u, hoje);
+            
+            // Exibir unidades que vencem na data alvo
+            if (diasRestantes == 0) {
+                printf("  [ALERTA] Lote %d vence hoje!\n", uni_get_lote(u));
+            }
+
+            // Regra: desconto se vencer em ate 3 dias
+            if (diasRestantes >= 0 && diasRestantes <= 3) {
+                aplicarDesconto = TRUE;
+            }
+        }
+
+        if (aplicarDesconto) {
+            printf("  >> Promocao: Aplicando 25%% de desconto por vencimento proximo.\n");
+            prod_reajuste(estoque[i], -25.0);
+            printf("  >> Novo preco unitario: R$ %.2f\n", prod_get_preco(estoque[i]));
+        }
     }
 
-    // 2. Teste de Exibição Direta
-    printf("Dados Iniciais:\n");
-    pimc_exibePessoaIMC(pessoa);
-    printf("\n");
-
-    // 3. Teste da String Dinâmica (pimc_getPessoaIMC)
-    // De acordo com as fontes, quando uma função do TAD aloca memória e a retorna,
-    // o programa cliente (main) é responsável por dar free() [3].
-    printf("\n--- Teste de Recuperacao de String ---\n");
-    char *info = pimc_getPessoaIMC(pessoa);
-    if (info != NULL) {
-        printf("String recuperada: %s\n", info);
-        free(info); // Liberação obrigatória para evitar vazamento de memória [4]
+    // Liberação total
+    dta_libera(hoje);
+    for (i = 0; i < 2; i++) {
+        prod_libera(&estoque[i]);
     }
 
-    // 4. Teste de Modificações
-    printf("\n--- Teste de Alteracao de Dados ---\n");
-    printf("Aumentando o peso em 5200g (5.2kg) e a altura em 5cm...\n");
-    pimc_alteraPeso(pessoa, 5200);   // Usa a lógica de soma do TAD Peso
-    pimc_alteraAltura(pessoa, 5);    // Usa a lógica de soma do TAD Altura
-
-    // 5. Exibição dos dados atualizados e Categoria
-    printf("\nDados Atualizados:\n");
-    pimc_exibePessoaIMC(pessoa);
-    printf("\nIMC calculado: %.2f\n", pimc_calcularIMC(pessoa));
-    printf("Categoria final: %s\n", pimc_categorizaIMC(pessoa));
-
-    // 6. Liberação de Memória
-    // A função pimc_libera deve garantir a limpeza de toda a hierarquia (nome, peso e altura) [5, 6]
-    printf("\nLimpando memoria do Heap...\n");
-    pimc_libera(pessoa);
-
-    printf("Testes concluidos com sucesso.\n");
+    printf("\nSistema encerrado e memoria limpa.\n");
     return 0;
 }

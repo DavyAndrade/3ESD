@@ -1,61 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "PessoaIMC.h"
 #include "Peso.h"
+#include "Altura.h"
 
 int main(void) {
-    // 1. Criação de pesos para teste
-    printf("--- Teste de Criacao e Exibicao ---\n");
-    Peso *p1 = pes_cria(70, 500); // 70kg e 500g
-    Peso *p2 = pes_cria(82, 900); // 82kg e 900g
+    // 1. Criação da instância
+    // Nome: Maria Souza, Peso: 65kg 500g, Altura: 1m 60cm
+    printf("--- Teste de Criacao ---\n");
+    PessoaIMC *pessoa = pimc_cria(65, 0, 1, 60, "Maria Souza");
 
-    if (p1 == NULL || p2 == NULL) {
-        printf("Falha na alocação de memoria.\n");
+    if (pessoa == NULL) {
+        printf("Erro ao alocar PessoaIMC (Memoria insuficiente).\n");
         return 1;
     }
 
-    printf("Peso 1: "); pes_exibePeso(p1);
-    printf("Peso 2: "); pes_exibePeso(p2);
+    // 2. Teste de Exibição Direta
+    printf("Dados Iniciais:\n");
+    pimc_exibePessoaIMC(pessoa);
+    printf("\n");
 
-    // 2. Teste de Acesso e Atribuição
-    printf("\n--- Teste de Atribuicao ---\n");
-    printf("Alterando Peso 1 para 75kg fixos...\n");
-    pes_atribui(p1, 75, 0);
-    pes_exibePeso(p1);
-
-    // 3. Teste da Funcionalidade Extra: Soma (Aumento de Peso)
-    printf("\n--- Teste de Funcionalidade Extra (Soma) ---\n");
-    printf("Somando 1200g ao Peso 1 (75kg)...\n");
-    Peso *p3 = pes_soma(p1, 1200); // Deve gerar 76kg e 200g
-    printf("Novo Peso 3 (Resultado da soma): ");
-    pes_exibePeso(p3);
-
-    // 4. Teste de Comparação
-    printf("\n--- Teste de Comparacao ---\n");
-    int comp = pes_compara(p2, p3);
-    if (comp > 0) printf("Peso 2 e maior que Peso 3.\n");
-    else if (comp < 0) printf("Peso 3 e maior que Peso 2.\n");
-    else printf("Os pesos sao iguais.\n");
-
-    // 5. Teste da String Dinâmica (Gestão de Memória)
-    printf("\n--- Teste de String Dinamica ---\n");
-    char *str = pes_getPeso(p3);
-    if (str != NULL) {
-        printf("String gerada pelo TAD: %s", str);
-        free(str); // OBRIGATÓRIO: Liberar a string alocada internamente [5]
+    // 3. Teste da String Dinâmica (pimc_getPessoaIMC)
+    // De acordo com as fontes, quando uma função do TAD aloca memória e a retorna,
+    // o programa cliente (main) é responsável por dar free() [3].
+    printf("\n--- Teste de Recuperacao de String ---\n");
+    char *info = pimc_getPessoaIMC(pessoa);
+    if (info != NULL) {
+        printf("String recuperada: %s\n", info);
+        free(info); // Liberação obrigatória para evitar vazamento de memória [4]
     }
 
-    // 6. Teste de Cópia
-    printf("\n--- Teste de Copia ---\n");
-    Peso *p_copia = pes_copia(p2);
-    printf("Copia do Peso 2: ");
-    pes_exibePeso(p_copia);
+    // 4. Teste de Modificações
+    printf("\n--- Teste de Alteracao de Dados ---\n");
+    printf("Aumentando o peso em 5200g (5.2kg) e a altura em 5cm...\n");
+    pimc_alteraPeso(pessoa, 5200);   // Usa a lógica de soma do TAD Peso
+    pimc_alteraAltura(pessoa, 5);    // Usa a lógica de soma do TAD Altura
 
-    // 7. Liberação Final de Memória
+    // 5. Exibição dos dados atualizados e Categoria
+    printf("\nDados Atualizados:\n");
+    pimc_exibePessoaIMC(pessoa);
+    printf("\nIMC calculado: %.2f\n", pimc_calcularIMC(pessoa));
+    printf("Categoria final: %s\n", pimc_categorizaIMC(pessoa));
+
+    // 6. Liberação de Memória
+    // A função pimc_libera deve garantir a limpeza de toda a hierarquia (nome, peso e altura) [5, 6]
     printf("\nLimpando memoria do Heap...\n");
-    pes_libera(p1);
-    pes_libera(p2);
-    pes_libera(p3);
-    pes_libera(p_copia);
+    pimc_libera(pessoa);
 
     printf("Testes concluidos com sucesso.\n");
     return 0;
